@@ -1,0 +1,23 @@
+{
+  "name": "observable-ajax",
+  "version": "1.0.0",
+  "description": "this is a ajax with observer design pattern",
+  "main": "index.js",
+  "scripts": {
+    "test": "none"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/walker27/observableAjax.git"
+  },
+  "keywords": [
+    "ajax",
+    "observable"
+  ],
+  "author": "walker27",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/walker27/observableAjax/issues"
+  },
+  "homepage": "https://github.com/walker27/observableAjax#readme"
+}
