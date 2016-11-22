@@ -1,3 +1,4 @@
+/// <reference path="../typings/ObservableAjax.d.ts" />
 import Subject from './subject';
 import getPropByRouter from './getPropByRouter';
 const
@@ -5,58 +6,72 @@ const
   isFunction = (maybeFunc: any) => typeof(maybeFunc) === 'function',
   isNotFunction = (maybeFunc: any) => !isFunction(maybeFunc),
   noop = () => {},
-  alwaysTrue = () => true;
+  alwaysTrue: booleanFunc = () => true;
 
 /**
  * 触发事件
  */
 function _triggerEvent(ctx: ObservableAjax) {
-  return function __triggerEvent(eventName: string, ...args: any[]) {
-    const subjectEv = ctx._flowEvent[eventName];
+  return function __triggerEvent(subjectEv: Subject, ...args: any[]) {
     subjectEv.notify.call(subjectEv, ctx, ...args);
   }
 }
-enum EajaxType { Net, Trans };
+/**
+ * 请求类型:
+ */
+enum EajaxType { 
+  /**
+   * 网络请求
+   */
+  Net = 519,
+  /**
+   * 从其他堆栈中获取
+   */ 
+  Trans 
+};
+/**
+ * 事件类型
+ */
+enum FlowType {
+    /**
+     * 请求开始之前
+     */
+    updateStart = 519,
+    /**
+     * 请求结束并在全部通知完成之后
+     */
+    updateEnd,
+    /**
+     * 请求出错时，在updateEnd之前
+     */
+    updateFailed,
+}
 class ObservableAjax {
-  // test = new Subject();
-  _ajaxFunc: Function;
-  params: any;
-  _paramVerifier: Function;
-  ajaxResponse: Object;
-  _responseTransformer: Function;
-  _resSubject: Subject;
-  _paramSubject: Subject;
-  _flowEvent: any;
-  private flowEvent={
-    updateStart: new Subject(),
-    updateEnd: new Subject(),
-    updateFailed: new Subject(),
+  private ajaxFunc: Function;
+  public params:any = {};
+  private paramSubject = new Subject();
+  public ajaxResponse: any = {};
+  private paramVerifier: booleanFunc = alwaysTrue;
+  private responseTransformer: Function = _id;
+  private resSubject = new Subject();
+  private flowEvent = {
+    [FlowType.updateStart]: new Subject(),
+    [FlowType.updateEnd]: new Subject(),
+    [FlowType.updateFailed]: new Subject(),
   }
-  // static ajaxType: any;
   static ajaxType = EajaxType;
+  static eventType = FlowType;
   constructor(ajaxFunc = noop) {
-    const self = this;
-    self._ajaxFunc = ajaxFunc;
-    self.params = {};
-    self._paramVerifier = alwaysTrue;
-    self._paramSubject = new Subject();
-    self.ajaxResponse = {};
-    self._responseTransformer = _id;
-    self._resSubject = new Subject();
-    self._flowEvent = {
-      'updateStart': new Subject(),
-      'updateEnd': new Subject(),
-      'updateFailed': new Subject(),
-    };
+    this.ajaxFunc = ajaxFunc;
   }
 
   /**
    * 设置参数校验器
    */
-  setParamVerifier(verifier: Function) {
+  setParamVerifier(verifier: booleanFunc) {
     if(isNotFunction(verifier))
       return;
-    this._paramVerifier = verifier;
+    this.paramVerifier = verifier;
     return this;
   }
 
@@ -66,27 +81,27 @@ class ObservableAjax {
   setResponseTransformer(transformer: Function) {
     if (isNotFunction(transformer))
       return;
-    this._responseTransformer = transformer;
+    this.responseTransformer = transformer;
     return this;
   }
 
   /**
    * 为流程事件增加观察者
    */
-  addEventListener(eventName: string, callback: IObserver) {
-    if (isNotFunction(callback) || !this._flowEvent[eventName])
+  addEventListener(eventName: FlowType, callback: IObserver) {
+    if (isNotFunction(callback) || !this.flowEvent[eventName])
       return this;
-    this._flowEvent[eventName].addObserver(callback);
+    this.flowEvent[eventName].addObserver(callback);
     return this;
   }
 
   /**
    * 为流程事件移除观察者
    */
-  removeEventListener(eventName: string, callback: IObserver) {
-    if (isNotFunction(callback) || !this._flowEvent[eventName])
+  removeEventListener(eventName: FlowType, callback: IObserver) {
+    if (isNotFunction(callback) || !this.flowEvent[eventName])
       return this;
-    this._flowEvent[eventName].removeObserver(callback);
+    this.flowEvent[eventName].removeObserver(callback);
     return this;
   }
 
@@ -97,7 +112,7 @@ class ObservableAjax {
     if (isNotFunction(callback))
       return this;
     callback['__router'] = router;
-    this._resSubject.addObserver(callback);
+    this.resSubject.addObserver(callback);
     return this;
   }
 
@@ -105,19 +120,18 @@ class ObservableAjax {
    * 取消订阅返回的内容
    */
   unsubscribe(callback: IObserver) {
-    this._resSubject.removeObserver(callback);
+    this.resSubject.removeObserver(callback);
     return this;
   }
 
   /**
    * 添加参数收集器
    * 将当前的ajax请求参数params传递给观察者,以供修改
-   * @param {Function} callback 观察者
    */
   addParamCollector(callback: IObserver) {
     if (isNotFunction(callback))
       return this;
-    this._paramSubject.addObserver(callback);
+    this.paramSubject.addObserver(callback);
     return this;
   }
 
@@ -125,14 +139,14 @@ class ObservableAjax {
    * 移除参数收集器
    */
   removeParamCollector(callback: IObserver) {
-    this._paramSubject.removeObserver(callback);
+    this.paramSubject.removeObserver(callback);
     return this;
   }
 
   /**
    * 执行请求流程
    */
-  update(option: any) {
+  update(option: IOAoption) {
     const
       self = this,
       opt = typeof option === 'object' ? option : {},
@@ -143,38 +157,38 @@ class ObservableAjax {
 
       extendsArgs = opt.extendArgs instanceof Array ? opt.extendArgs : [];
     // 收集参数
-    self._paramSubject.notify(self, self.params);
+    self.paramSubject.notify(self, self.params);
     // 并入本次请求的参数
     for (let key in temporaryParam) {
       self.params[key] = temporaryParam[key];
     }
     // 验证参数是否有效, 若无效则停止流程
-    if (self._paramVerifier(self.params) === false)
+    if (self.paramVerifier(self.params) === false)
       return;
 
     // update前, 可在此时调整参数, 或处理通用行为
-    triggerEvent('updateStart', self.params)
+    triggerEvent(self.flowEvent[FlowType.updateStart], self.params)
     if (reqType === ajaxType.Net) {
-      self._ajaxFunc.apply(null, [self.params, successCb, errorCb].concat(extendsArgs));
+      self.ajaxFunc.apply(null, [self.params, successCb, errorCb].concat(extendsArgs));
     } else {
       transData();
     }
 
     function successCb(resObj: any, params ?: any) {
       self.ajaxResponse = resObj;
-      let transformedData = self._responseTransformer(resObj, params);
+      let transformedData = self.responseTransformer(resObj, params);
       if (transformedData) {
-        self._resSubject.eachObserver(function(observer, idx) {
+        self.resSubject.eachObserver(function(observer, idx) {
           observer(getPropByRouter(transformedData, observer['__router']), self.params);
         });
       }
 
-      triggerEvent('updateEnd', transformedData, self.params);
+      triggerEvent(self.flowEvent[FlowType.updateEnd], transformedData, self.params);
     }
 
     function errorCb(e: any) {
-      triggerEvent('updateFailed', e);
-      triggerEvent('updateEnd');
+      triggerEvent(self.flowEvent[FlowType.updateFailed], e);
+      triggerEvent(self.flowEvent[FlowType.updateEnd]);
     }
 
     function transData() {

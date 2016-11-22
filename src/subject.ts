@@ -1,8 +1,7 @@
 /// <reference path="../typings/subject.d.ts" />
-class Subject{
+class Subject implements ISubject{
   __value: any;
   observers: Array<IObserver>;
-  // addObserver: (observer: ()=>void) => void;
   constructor() {
     this.__value;
     this.observers = [];
@@ -18,12 +17,6 @@ class Subject{
     });
   }
   notify(ctx: any, ...args: any[]) {
-    // let
-    //   args = arguments,
-    //   arr:any[] = [];
-    // for (let i = 1, len = args.length; i < len; i++) {
-    //   arr.push(args[i]);
-    // }
     for (let i = 0, len = this.observers.length; i < len; i++) {
       this.observers[i].apply(ctx, args);
     }
@@ -35,5 +28,4 @@ class Subject{
   }
 }
 
-// module.exports = Subject;
 export default Subject;
