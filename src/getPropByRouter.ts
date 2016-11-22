@@ -1,4 +1,5 @@
-function getPropByRouter(targetObj, router) {
+/// <reference path="../typings/getPropByRouter.d.ts" />
+function getPropByRouter(targetObj: any, router: string): any {
   if (router === 'this' || router === '')
     return targetObj;
   let
@@ -7,7 +8,7 @@ function getPropByRouter(targetObj, router) {
 
   while (props.length !== 0) {
     if (targetData instanceof Array) {
-      arr = [];
+      let arr: any[] = [];
       for (let i = 0, len = targetData.length; i < len; i++) {
         arr.push(getPropByRouter(targetData[i], props.join('.')));
       }
@@ -21,4 +22,5 @@ function getPropByRouter(targetObj, router) {
 }
 
 
-module.exports = getPropByRouter;
+// module.exports = getPropByRouter;
+export default getPropByRouter;

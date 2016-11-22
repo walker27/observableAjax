@@ -19,5 +19,9 @@
   "bugs": {
     "url": "https://github.com/walker27/observableAjax/issues"
   },
-  "homepage": "https://github.com/walker27/observableAjax#readme"
+  "homepage": "https://github.com/walker27/observableAjax#readme",
+  "devDependencies": {
+    "google-closure-compiler-js": "^20161024.0.0",
+    "rollup": "^0.36.3"
+  }
 }
