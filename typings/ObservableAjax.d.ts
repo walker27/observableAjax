@@ -1,17 +1,6 @@
 /// <reference path="./subject.d.ts" />
 
-// interface IEnumFlowType {
-//     updateStart: 'updateStart'; 
-//     updateEnd: 'updateEnd';
-//     updateFailed: 'updateFailed';
-// }
 
-// interface IflowEvent{
-//     updateStart: ISubject;
-//     updateEnd: ISubject;
-//     updateFailed: ISubject;
-//     [propName: string]: any;
-// }
 interface booleanFunc{
     (...args: any[]): boolean;
 }

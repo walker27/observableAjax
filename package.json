@@ -3,8 +3,14 @@
   "version": "1.0.0",
   "description": "this is a ajax with observer design pattern",
   "main": "index.js",
+  "npm-script-info":{
+    "test":"用npm run --silent test 隐藏来自npm的报错"
+  },
   "scripts": {
-    "test": "none"
+    "test": "mocha ./test/test.js",
+    "build_global": "tsc && mkdirp ./dist/global && node ./tools/make-umd-bundle.js && node ./tools/make-closure-core.js",
+    "build_cjs": "tsc -m commonjs --outDir ./dist/cjs/",
+    "clean_dist": "shx rm -rf ./dist/*"
   },
   "repository": {
     "type": "git",
@@ -21,7 +27,11 @@
   },
   "homepage": "https://github.com/walker27/observableAjax#readme",
   "devDependencies": {
+    "chai": "^3.5.0",
     "google-closure-compiler-js": "^20161024.0.0",
-    "rollup": "^0.36.3"
-  }
+    "mocha": "^3.1.2",
+    "rollup": "^0.36.3",
+    "shx": "^0.2.1"
+  },
+  "dependencies": {}
 }

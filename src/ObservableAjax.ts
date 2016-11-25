@@ -3,9 +3,9 @@ import Subject from './subject';
 import getPropByRouter from './getPropByRouter';
 const
   _id = (a: any) => a,
-  isFunction = (maybeFunc: any) => typeof(maybeFunc) === 'function',
+  isFunction = (maybeFunc: any) => typeof (maybeFunc) === 'function',
   isNotFunction = (maybeFunc: any) => !isFunction(maybeFunc),
-  noop = () => {},
+  noop = () => { },
   alwaysTrue: booleanFunc = () => true;
 
 /**
@@ -19,36 +19,42 @@ function _triggerEvent(ctx: ObservableAjax) {
 /**
  * 请求类型:
  */
-enum EajaxType { 
+enum EajaxType {
   /**
    * 网络请求
    */
   Net = 519,
   /**
    * 从其他堆栈中获取
-   */ 
-  Trans 
+   */
+  Trans
 };
 /**
  * 事件类型
  */
 enum FlowType {
-    /**
-     * 请求开始之前
-     */
-    updateStart = 519,
-    /**
-     * 请求结束并在全部通知完成之后
-     */
-    updateEnd,
-    /**
-     * 请求出错时，在updateEnd之前
-     */
-    updateFailed,
+  /**
+   * 请求开始之前
+   */
+  updateStart = 519,
+  /**
+   * 请求结束并在全部通知完成之后
+   */
+  updateEnd,
+  /**
+   * 请求出错时，在updateEnd之前
+   */
+  updateFailed,
 }
 class ObservableAjax {
   private ajaxFunc: Function;
-  public params:any = {};
+  /**
+   * 请求参数
+   */
+  public params: any = {};
+  /**
+   * 请求参数对象的被观察对象
+   */
   private paramSubject = new Subject();
   public ajaxResponse: any = {};
   private paramVerifier: booleanFunc = alwaysTrue;
@@ -69,7 +75,7 @@ class ObservableAjax {
    * 设置参数校验器
    */
   setParamVerifier(verifier: booleanFunc) {
-    if(isNotFunction(verifier))
+    if (isNotFunction(verifier))
       return;
     this.paramVerifier = verifier;
     return this;
@@ -174,11 +180,11 @@ class ObservableAjax {
       transData();
     }
 
-    function successCb(resObj: any, params ?: any) {
+    function successCb(resObj: any, params?: any) {
       self.ajaxResponse = resObj;
       let transformedData = self.responseTransformer(resObj, params);
       if (transformedData) {
-        self.resSubject.eachObserver(function(observer, idx) {
+        self.resSubject.eachObserver(function (observer, idx) {
           observer(getPropByRouter(transformedData, observer['__router']), self.params);
         });
       }
@@ -194,7 +200,7 @@ class ObservableAjax {
     function transData() {
       const timeout = opt.delay;
       if (timeout === 0 || timeout) {
-        setTimeout(function() { successCb(opt.resData, self.params); }, timeout);
+        setTimeout(function () { successCb(opt.resData, self.params); }, timeout);
         return;
       }
       successCb(opt.resData, self.params);

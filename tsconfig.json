@@ -7,7 +7,7 @@
     "removeComments": true,
     "preserveConstEnums": true,
     // "suppressImplicitAnyIndexErrors":true,
-    "outDir": "./dist/temp/",
+    "outDir": "./dist/es6/",
     "sourceMap": true
   },
   "include": [
